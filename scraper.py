@@ -32,9 +32,24 @@ def get_updated_pages():
     })
     return response.json().get('results', [])
 
+def resolve_boxd_url(url):
+    """boxd.it linklerini letterboxd.com'a çevirir"""
+    try:
+        if 'boxd.it' in url:
+            response = requests.get(url, allow_redirects=True, timeout=10)
+            return response.url
+        return url
+    except Exception as e:
+        print(f"Error resolving URL {url}: {e}")
+        return url
+
 def scrape_letterboxd(url):
     try:
-        response = requests.get(url, timeout=10)
+        # boxd.it ise letterboxd.com'a çevir
+        full_url = resolve_boxd_url(url)
+        print(f"Resolved URL: {full_url}")
+        
+        response = requests.get(full_url, timeout=10)
         html = response.text
         
         poster_match = re.search(r'<meta property="og:image" content="(https://[^"]+)"', html)
