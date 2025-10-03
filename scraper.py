@@ -2,6 +2,7 @@ import os
 import re
 import requests
 from datetime import datetime
+import time
 
 NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
 FILMS_DB_ID = os.environ.get('FILMS_DB_ID')
@@ -13,7 +14,6 @@ NOTION_HEADERS = {
 }
 
 def get_updated_pages():
-    """Letterboxd URI'si dolu ama diğer alanları boş olan TÜM sayfaları getir (pagination ile)"""
     url = f'https://api.notion.com/v1/databases/{FILMS_DB_ID}/query'
     
     payload = {
@@ -61,6 +61,7 @@ def get_updated_pages():
     except Exception as e:
         print(f"Error fetching pages: {e}")
         return all_results
+
 def resolve_boxd_url(url):
     try:
         if 'boxd.it' in url:
@@ -133,16 +134,13 @@ def update_notion_page(page_id, data):
         return False
 
 def main():
-    import time
-    
     print(f"Starting scraper at {datetime.now()}")
     
     pages = get_updated_pages()
     print(f"Found {len(pages)} pages to update")
     
-    # Her seferinde sadece 50 film işle
-    pages_to_process = pages[:50]
-    print(f"Processing first {len(pages_to_process)} pages")
+    pages_to_process = pages
+    print(f"Processing all {len(pages_to_process)} pages")
     
     success_count = 0
     error_count = 0
@@ -166,8 +164,7 @@ def main():
                 error_count += 1
                 print("✗ No data scraped")
             
-            # Rate limiting: her istek arasında 2 saniye bekle
-            time.sleep(2)
+            time.sleep(1)
                 
         except Exception as e:
             error_count += 1
