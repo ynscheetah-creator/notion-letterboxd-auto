@@ -133,28 +133,47 @@ def update_notion_page(page_id, data):
         return False
 
 def main():
+    import time
+    
     print(f"Starting scraper at {datetime.now()}")
     
     pages = get_updated_pages()
     print(f"Found {len(pages)} pages to update")
     
-    for page in pages:
+    # Her seferinde sadece 50 film işle
+    pages_to_process = pages[:50]
+    print(f"Processing first {len(pages_to_process)} pages")
+    
+    success_count = 0
+    error_count = 0
+    
+    for i, page in enumerate(pages_to_process, 1):
         try:
             letterboxd_url = page['properties']['Letterboxd URI']['url']
-            print(f"Processing: {letterboxd_url}")
+            print(f"[{i}/{len(pages_to_process)}] Processing: {letterboxd_url}")
             
             data = scrape_letterboxd(letterboxd_url)
             
             if data:
                 success = update_notion_page(page['id'], data)
-                print(f"Updated: {'Success' if success else 'Failed'}")
+                if success:
+                    success_count += 1
+                    print(f"✓ Updated successfully")
+                else:
+                    error_count += 1
+                    print(f"✗ Update failed")
             else:
-                print("No data scraped")
+                error_count += 1
+                print("✗ No data scraped")
+            
+            # Rate limiting: her istek arasında 2 saniye bekle
+            time.sleep(2)
                 
         except Exception as e:
-            print(f"Error processing page: {e}")
+            error_count += 1
+            print(f"✗ Error: {e}")
     
-    print("Scraper finished")
+    print(f"\nFinished! Success: {success_count}, Errors: {error_count}")
 
 if __name__ == '__main__':
     main()
