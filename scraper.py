@@ -15,7 +15,7 @@ NOTION_HEADERS = {
 def get_updated_pages():
     url = f'https://api.notion.com/v1/databases/{FILMS_DB_ID}/query'
     response = requests.post(url, headers=NOTION_HEADERS, json={
-        "filter": {
+       "filter": {
             "and": [
                 {
                     "property": "Letterboxd URI",
@@ -24,12 +24,15 @@ def get_updated_pages():
                 {
                     "or": [
                         {"property": "Poster", "url": {"is_empty": True}},
-                        {"property": "Runtime (min)", "number": {"is_empty": True}}
+                        {"property": "Runtime (min)", "number": {"is_empty": True}},
+                        {"property": "Year", "number": {"is_empty": True}},
+                        {"property": "Director", "rich_text": {"is_empty": True}},
+                        {"property": "Cinematography", "rich_text": {"is_empty": True}},
+                        {"property": "Writer", "rich_text": {"is_empty": True}}
                     ]
                 }
             ]
         }
-    })
     return response.json().get('results', [])
 
 def resolve_boxd_url(url):
