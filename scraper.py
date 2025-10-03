@@ -13,6 +13,7 @@ NOTION_HEADERS = {
 }
 
 def get_updated_pages():
+    """Letterboxd URI'si dolu ama diğer alanları boş olan TÜM sayfaları getir (pagination ile)"""
     url = f'https://api.notion.com/v1/databases/{FILMS_DB_ID}/query'
     
     payload = {
@@ -36,14 +37,30 @@ def get_updated_pages():
         }
     }
     
+    all_results = []
+    has_more = True
+    start_cursor = None
+    
     try:
-        response = requests.post(url, headers=NOTION_HEADERS, json=payload)
-        response.raise_for_status()
-        return response.json().get('results', [])
+        while has_more:
+            if start_cursor:
+                payload["start_cursor"] = start_cursor
+            
+            response = requests.post(url, headers=NOTION_HEADERS, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            
+            all_results.extend(data.get('results', []))
+            has_more = data.get('has_more', False)
+            start_cursor = data.get('next_cursor')
+            
+            print(f"Fetched {len(data.get('results', []))} pages, total so far: {len(all_results)}")
+        
+        return all_results
+        
     except Exception as e:
         print(f"Error fetching pages: {e}")
-        return []
-
+        return all_results
 def resolve_boxd_url(url):
     try:
         if 'boxd.it' in url:
